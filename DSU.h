@@ -1,72 +1,83 @@
 #pragma once
+#include <iostream>
 #include <unordered_map>
 #include <functional>
 
-template<class T, class _idx = long long, class _rank = long long>
-class DSU {
+template<class T>
+class TDsu {
 
-	using _pair = std::pair<_idx, _rank>; // <parent, rank>
+	using TIndex = size_t;
+	using TRank = size_t;
 
-	std::unordered_map<_idx, _pair> _dsu;
-	std::function<_idx(const T&)> _func;
+	struct TData {
+		TIndex Parent;
+		TRank Rank;
+	};
+
+	using TContainer = std::unordered_map<TIndex, TData>;
+	using TFunc = std::function<TIndex(const T&)>;
 
 public:
 
-	DSU() {
-		_func = [](const T& obj) { return static_cast<_idx>(obj); };
+	TDsu() {
+		Func = [](const T& obj) { return static_cast<TIndex>(obj); };
 	}
 
-	DSU(std::function<_idx(const T&)> func) {
-		_func = func;
-	}
-
-	void _MakeSet(const _idx& x) {
-		if (_dsu.find(x) == _dsu.end())
-			_dsu[x] = _pair{ x , _rank(0) };
+	TDsu(TFunc func) {
+		Func = func;
 	}
 
 	void MakeSet(const T& obj) {
-		_MakeSet(_func(obj));
+		_MakeSet(Func(obj));
 	}
 
-	_idx _Find(const _idx& x) {
-		if (_dsu.find(x) == _dsu.end()) {
+	TIndex Find(const T& obj) {
+		return _Find(Func(obj));
+	}
+
+	void Union(const T& obj1, const T& obj2) {
+		_Union(Func(obj1), Func(obj2));
+	}
+
+private:
+
+	void _MakeSet(const TIndex& x) {
+		if (Dsu.find(x) == Dsu.end())
+			Dsu[x] = TData{ x , TRank(0) };
+	}
+
+	TIndex _Find(const TIndex& x) {
+		if (Dsu.find(x) == Dsu.end()) {
 			_MakeSet(x);
 		}
-		else if (_dsu[x].first != x) {
-			_dsu[x].first = _Find(_dsu[x].first);
+		else if (Dsu[x].Parent != x) {
+			Dsu[x].Parent = _Find(Dsu[x].Parent);
 		}
 
-		return _dsu[x].first;
+		return Dsu[x].Parent;
 	}
 
-	_idx Find(const T& obj) {
-		return _Find(_func(obj));
-	}
-
-	void _Union(const _idx& x, const _idx& y) {
-		_idx px = _Find(x);
-		_idx py = _Find(y);
+	void _Union(const TIndex& x, const TIndex& y) {
+		TIndex px = _Find(x);
+		TIndex py = _Find(y);
 
 		if (px == py) return;
 
-		if (_dsu[px].second < _dsu[py].second) {
-			_dsu[px].first = py;
+		if (Dsu[px].Rank < Dsu[py].Rank) {
+			Dsu[px].Parent = py;
 		}
 		else {
-			_dsu[py].first = px;
+			Dsu[py].Parent = px;
 
-			if (_dsu[px].second == _dsu[py].second) {
-				_dsu[px].second++;
+			if (Dsu[px].Rank == Dsu[py].Rank) {
+				Dsu[px].Rank++;
 			}
 		}
 	}
 
-	void Union(const T& obj1, const T& obj2) {
-		_Union(_func(obj1), _func(obj2));
-	}
+private:
 
-	friend std::ostream& operator<<(std::ostream& out, const DSU<T, _idx, _rank>& dsu) {
-		return out << dsu._dsu << std::endl;
-	}
+	TContainer Dsu;
+	TFunc Func;
+
 };
