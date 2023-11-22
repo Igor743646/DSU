@@ -13,7 +13,7 @@ using _time = chrono::time_point<chrono::system_clock>;
 
 int main()
 {
-    DSU<int> set;
+    TDsu<int> set;
 
     set.MakeSet(1);
     set.MakeSet(7);
